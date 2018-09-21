@@ -10,13 +10,8 @@ import UIKit
 
 class CalculadoraViewController: UIViewController {
     
-    let stackviewHorizontal = UIStackView()
-    let stackviewHorizontal2 = UIStackView()
-    let stackviewHorizontal3 = UIStackView()
-    let stackviewHorizontal4 = UIStackView()
-    let stackviewHorizontal5 = UIStackView()
-    let stackviewVertical = UIStackView()
-    let lb =  UILabel()
+    
+    let tf =  UITextField()
     let bt0 = UIButton(type: .system)
     let bt1 = UIButton(type: .system)
     let bt2 = UIButton(type: .system)
@@ -36,10 +31,7 @@ class CalculadoraViewController: UIViewController {
     let point = UIButton(type: .system)
     var result = UIButton(type: .system)
     let percent = UIButton(type: .system)
-    var n1 : Double = 0
-    var n2 : Double = 0
-    var op : String = ""
-    var content = ""
+    var viewModel = CalculadoraViewModel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,36 +42,33 @@ class CalculadoraViewController: UIViewController {
     }
     
     func addSubView(){
-        view.addsubviews([
-            lb,
-            bt0,
-            bt1,
-            bt2,
-            bt3,
-            bt4,
-            bt5,
-            bt6,
-            bt7,
-            bt8,
-            bt9,
-            limpar,
-            positAndNegativ,
-            percent,
-            point,
-            somar,
-            subtrair,
-            divisor,
-            multiplicador,
-            result,
-            stackviewHorizontal,
-            stackviewHorizontal2,
-            stackviewHorizontal3,
-            stackviewHorizontal4,
-            stackviewHorizontal5,
-            stackviewVertical
-            ])
-        
+        view.addsubviews(
+            [
+                tf,
+                bt0,
+                bt1,
+                bt2,
+                bt3,
+                bt4,
+                bt5,
+                bt6,
+                bt7,
+                bt8,
+                bt9,
+                limpar,
+                positAndNegativ,
+                percent,
+                point,
+                somar,
+                subtrair,
+                divisor,
+                multiplicador,
+                result
+            ]
+        )
     }
+    
+
     
 //    func Formatter(_ lb: UILabel?){
 //        if var label = lb?.text{
@@ -91,23 +80,10 @@ class CalculadoraViewController: UIViewController {
     
     func setupUI(){
         view.backgroundColor = .black
-        lb.text = "0"
-        lb.font = UIFont.boldSystemFont(ofSize: 70)
-        lb.textColor = .white
-        lb.textAlignment = .right
-        
-        stackviewHorizontal.Costumize(type: .horizontal)
-        
-        stackviewHorizontal2.Costumize(type: .horizontal)
-        
-        stackviewHorizontal3.Costumize(type: .horizontal)
-        
-        stackviewHorizontal4.Costumize(type: .horizontal)
-        
-        stackviewHorizontal5.Costumize(type: .horizontal)
-        
-        stackviewVertical.Costumize(type: .vertical)
-        
+        tf.text = "0"
+        tf.font = UIFont.boldSystemFont(ofSize: 40)
+        tf.textColor = .white
+        tf.textAlignment = .right
         
         bt0.Costumize(target: self, title: "0",type: .number, selector: #selector(click))
         
@@ -135,104 +111,55 @@ class CalculadoraViewController: UIViewController {
         
         subtrair.Costumize(target: self,title: "-",type: .operator,selector: #selector(operators(_:)))
         
-        result.Costumize(target: self,title: "=",type: .operator,selector: #selector(showResult(_:)))
+        result.Costumize(target: self,title: "=",type: .operator,selector: #selector(showResult))
         
         multiplicador.Costumize(target: self,title: "*",type: .operator,selector: #selector(operators(_:)))
         
         divisor.Costumize(target: self,title: "/",type: .operator, selector: #selector(operators(_:)))
         
-        point.Costumize(target: self,title: ".",type: .number,selector: #selector(click(_:)))
+        point.Costumize(target: self,title: ",",type: .number,selector: #selector(click))
         
         positAndNegativ.Costumize(target: self,title: "+/-",type: .number, selector: #selector(switchPositivNegative))
         
-        percent.Costumize(target: self,title: "%",type: .number, selector: #selector(operators(_:)))
+        percent.Costumize(target: self,title: "%",type: .number, selector: #selector(percentCalc))
+    }
+    
+    @objc func click(_ sender:UIButton){
+        viewModel.content.append(sender.currentTitle!)
+        tf.text = viewModel.formatter()
+    }
+    
+    @objc func operators(_ sender:UIButton){
+        viewModel.operators(sender.currentTitle)
+    }
+    
+    @objc func percentCalc(){
+        viewModel.contentReplace(tf.text ?? "0")
+        tf.text = viewModel.percentCalc()
+    }
+   
+    @objc func switchPositivNegative(){
+        tf.text = viewModel.switchPositivNegative()
     }
     
     @objc func clear(){
-        lb.text = "0"
-        n1 = 0
-        n2 = 0
-        op = ""
-        content = ""
+        viewModel.clear()
+        tf.text = "0"
     }
     
-    @objc func click(_ bt:UIButton){
-        content.append(bt.currentTitle!)
-        lb.text = formatter(value: Double(content)!)
-    }
-    
-    @objc func switchPositivNegative(){
-        if let change = Double(lb.text!) {
-            if change < 0{
-                lb.text = "\(0  - change)"
-            }else{
-                lb.text = "-\(change)"
-            }
-        }
-    }
-    
-    func formatter(value: Double) -> String{
-        let formatter = NumberFormatter()
-        formatter.usesGroupingSeparator = true
-        formatter.numberStyle = .decimal
-        formatter.locale = Locale.current
-        return formatter.string(from: NSNumber(value:value))!
-    }
-    
-    
-    @objc func operators(_ bt:UIButton){
-        content = ""
-        content = lb.text!
-        content = (content.replacingOccurrences(of: ".", with: "", options: .literal, range: nil))
-        n1 = Double(content.replacingOccurrences(of: ",", with: ".", options: .literal, range: nil))!
-        if let bt = bt.titleLabel?.text{
-            switch bt {
-            case "+":
-                op = "+"
-            case "-":
-                op = "-"
-            case "/":
-                op = "/"
-            case "*":
-                op = "*"
-            default:
-                break;
-                }
-            }
-        content = ""
-        }
-    
-    
-    @objc func showResult(_ bt:UIButton){
-        var number2 = ""
-        var result:Double = 0
-        number2.append(content)
-        n2 = Double(number2)!
-        switch op {
-        case "+":
-            result = n1 + n2
-        case "-":
-            result =  n1 - n2
-        case "/":
-            result = n1 / n2
-        case "*":
-            result = n1 * n2
-        default:
-            break
-        }
-        lb.text = formatter(value: result)
+    @objc func showResult(){
+        tf.text = viewModel.showResult()
     }
     
     func Constrains() {
-        
-        lb.anchor(
+        tf.anchor(
             top: (view.topAnchor, 0),
-            left: (view.leftAnchor, 0),
-            right: (view.rightAnchor, 0)
+            left: (view.leftAnchor, 15),
+            right: (view.rightAnchor, 15)
         )
         
         limpar.anchor(
-            top: (lb.bottomAnchor, 0),
+            top: (tf.bottomAnchor, 0),
             left: (view.leftAnchor, 0),
             width: view.frame.size.width / 4 ,
             height: view.frame.size.width / 5
@@ -268,7 +195,7 @@ class CalculadoraViewController: UIViewController {
         )
         
         positAndNegativ.anchor(
-            top: (lb.bottomAnchor, 0),
+            top: (tf.bottomAnchor, 0),
             left: (limpar.rightAnchor, 0),
             width: view.frame.size.width / 4,
             height: view.frame.size.width / 5
@@ -297,7 +224,7 @@ class CalculadoraViewController: UIViewController {
         )
         
         percent.anchor(
-            top: (lb.bottomAnchor, 0),
+            top: (tf.bottomAnchor, 0),
             left: (positAndNegativ.rightAnchor, 0),
             width: view.frame.size.width / 4,
             height: view.frame.size.width / 5
@@ -333,7 +260,7 @@ class CalculadoraViewController: UIViewController {
         )
         
         divisor.anchor(
-            top: (lb.bottomAnchor, 0),
+            top: (tf.bottomAnchor, 0),
             left: (percent.rightAnchor, 0),
             right: (view.rightAnchor, 0),
             width: view.frame.size.width / 4,
@@ -344,7 +271,8 @@ class CalculadoraViewController: UIViewController {
             top: (divisor.bottomAnchor ,0),
             left: (bt9.rightAnchor, 0),
             right: (view.rightAnchor, 0),
-            width: view.frame.size.width / 4, height: view.frame.size.width / 5
+            width: view.frame.size.width / 4,
+            height: view.frame.size.width / 5
         )
         
         subtrair.anchor(
@@ -371,6 +299,5 @@ class CalculadoraViewController: UIViewController {
             width: view.frame.size.width / 4,
             height: view.frame.size.width / 5
         )
-        
     }
 }
